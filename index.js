@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const jsonwebtoken = require("jsonwebtoken");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require("dotenv").config();
 
 const app = express();
@@ -22,13 +22,35 @@ const run = async () => {
         await client.connect()
         const database = client.db('manufacturer-parts');
         const partsCollection = database.collection('partsCollection')
+        const usersCollection = database.collection('users')
 
-        
+        app.put('/users/:email',async (req, res)=>{
+          const email = req.params.email
+          const user = req.body;
+          const filter = {email: email};
+          const options = {upsert: true};
+          const updateDoc = {
+            $set: user
+          }
+          const results = await usersCollection.updateOne(filter, updateDoc, options);
+          const key = jsonwebtoken.sign({email: email}, process.env.SECRET_TOKEN)
+          res.send({results, key})
+          console.log(user)
+        })
+
+
+
+
+
+
+        console.log('DB Connected')
     }
     finally{
 
     }
 };
+
+run()
 
 app.get("/", (req, res) => {
   res.send(`Server running on ${port}`);
