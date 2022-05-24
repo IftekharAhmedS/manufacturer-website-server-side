@@ -43,6 +43,12 @@ const run = async () => {
           const parts = await cursor.toArray();
           res.send(parts)
         })
+        app.get('/parts/:id', async (req, res)=>{
+          const id = req.params.id;
+          const query = {_id: ObjectId(id)}
+          const part = await partsCollection.findOne(query);
+          res.send(part)
+        })
         app.post('/parts', verifyJWT, async (req, res)=>{
           const parts = req.body;
           const part = await partsCollection.insertOne(parts)
