@@ -76,7 +76,7 @@ const run = async () => {
       res.send(purchase);
     });
 
-    app.patch('/purchase/:id', async (req, res) => {
+    app.patch('/purchase/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
       const purchase = req.body;
       const query = { _id: ObjectId(id) };
@@ -89,6 +89,13 @@ const run = async () => {
       const updatedPurchase = await purchaseCollection.updateOne(query, updatedDoc);
       const payment = await paymentCollection.insertOne(purchase)
       res.send(updatedDoc)
+    })
+
+    app.delete('/purchase/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const purchase = await purchaseCollection.deleteOne(query);
+      res.send(purchase)
     })
 
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
