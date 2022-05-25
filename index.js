@@ -4,6 +4,8 @@ const jsonwebtoken = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
+
 const app = express();
 const port = process.env.PORT || 5000;
 app.use(cors());
@@ -55,9 +57,34 @@ const run = async () => {
     });
 
     // PURCHASE API
+    app.get("/purchase", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const userPurchases = await purchaseCollection.find(query).toArray();
+      res.send(userPurchases);
+    });
+    app.get("/purchase/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const purchase = await purchaseCollection.findOne(query);
+      res.send(purchase);
+    });
     app.post("/purchase/", verifyJWT, async (req, res) => {
       const purchaseData = req.body;
-      const purchase = await purchaseCollection.insertOne(purchaseData)
+      const purchase = await purchaseCollection.insertOne(purchaseData);
+      res.send(purchase);
+    });
+
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const purchase = req.body;
+      const price = purchase.partPrice;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
     });
 
     // USERS API
