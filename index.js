@@ -36,6 +36,7 @@ const run = async () => {
     const partsCollection = database.collection("partsCollection");
     const usersCollection = database.collection("users");
     const purchaseCollection = database.collection("purchase");
+    const paymentCollection = database.collection("payments");
 
     // PARTS API
     app.get("/parts", async (req, res) => {
@@ -74,6 +75,21 @@ const run = async () => {
       const purchase = await purchaseCollection.insertOne(purchaseData);
       res.send(purchase);
     });
+
+    app.patch('/purchase/:id', async (req, res) => {
+      const id = req.params.id;
+      const purchase = req.body;
+      const query = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: 'pending',
+          transactionId: purchase.transactionId
+        }
+      }
+      const updatedPurchase = await purchaseCollection.updateOne(query, updatedDoc);
+      const payment = await paymentCollection.insertOne(purchase)
+      res.send(updatedDoc)
+    })
 
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const purchase = req.body;
