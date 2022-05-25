@@ -37,6 +37,7 @@ const run = async () => {
     const usersCollection = database.collection("users");
     const purchaseCollection = database.collection("purchase");
     const paymentCollection = database.collection("payments");
+    const reviewCollection = database.collection('reviews')
 
     // PARTS API
     app.get("/parts", async (req, res) => {
@@ -127,6 +128,21 @@ const run = async () => {
       const key = jsonwebtoken.sign({ email: email }, process.env.SECRET_TOKEN);
       res.send({ results, key });
     });
+
+
+    // REVIEWS API
+    app.get('/reviews', async (req, res)=>{
+      
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const review = await cursor.toArray();
+      res.send(review);
+    })
+    app.post('/reviews', verifyJWT, async (req, res)=>{
+      const reviewData = req.body;
+      const review = await reviewCollection.insertOne(reviewData);
+      res.send(review);
+    })
 
     console.log("DB Connected");
   } finally {
