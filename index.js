@@ -112,6 +112,14 @@ const run = async () => {
     });
 
     // USERS API
+    
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      res.send(user);
+    });
+
     app.put("/users/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
